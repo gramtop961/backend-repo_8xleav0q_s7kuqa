@@ -12,9 +12,9 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List, Literal
 
-# Example schemas (replace with your own):
+# Example schemas (kept for reference):
 
 class User(BaseModel):
     """
@@ -38,11 +38,26 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# Seating application schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class SeatInline(BaseModel):
+    index: int = Field(..., ge=0, description="Seat index at the table")
+    label: str = Field(..., description="Human-friendly seat label")
+    reserved: bool = Field(False, description="Reservation status")
+
+class Table(BaseModel):
+    name: str = Field(..., description="Table name/label")
+    shape: Literal["round", "rect"] = Field("round", description="Table shape")
+    x: float = Field(..., ge=0, description="Position X in room units")
+    y: float = Field(..., ge=0, description="Position Y in room units")
+    width: float = Field(120, gt=0, description="Width in room units")
+    height: float = Field(120, gt=0, description="Height in room units")
+    rotation: float = Field(0, description="Rotation angle in degrees")
+    color: Optional[str] = Field(None, description="Optional accent color for the table")
+    seats: List[SeatInline] = Field(default_factory=list, description="Seats at the table")
+
+class Reservation(BaseModel):
+    table_id: str = Field(..., description="Table document id")
+    seat_index: int = Field(..., ge=0, description="Seat index being reserved")
+    name: str = Field(..., description="Guest name")
+    note: Optional[str] = Field(None, description="Optional note or occasion")
